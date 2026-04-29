@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using Pokedex.Api.Clients;
 using Pokedex.Api.Clients.Interfaces;
+using Pokedex.Api.Middleware;
 using Pokedex.Api.Options;
 using Pokedex.Api.Services;
 using Pokedex.Api.Services.Interfaces;
@@ -13,6 +14,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 builder.Services
 		.AddOptions<ExternalApiOptions>()
@@ -42,6 +46,8 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+
+app.UseExceptionHandler();
 
 app.UseAuthorization();
 

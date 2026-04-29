@@ -19,6 +19,8 @@ namespace Pokedex.Api.Controllers
 
 		[HttpGet("{name}", Name = "GetPokemon")]
 		[ProducesResponseType(typeof(PokemonResponse), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status502BadGateway)]
 		public async Task<IActionResult> GetPokemonAsync(string name, CancellationToken cancellationToken)
 		{
 			var pokemonInfo = await _pokemonService.GetPokemonInfoAsync(name, cancellationToken);

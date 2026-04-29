@@ -1,7 +1,9 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Pokedex.Api.Clients.Interfaces;
 using Pokedex.Api.Domain;
+using Pokedex.Api.Exceptions;
 
 namespace Pokedex.Api.Clients
 {
@@ -22,14 +24,40 @@ namespace Pokedex.Api.Clients
 
 			using var response = await _httpClient.GetAsync(path, cancellationToken);
 
-			PokemonSpeciesResponse? species;
+			if (response.StatusCode == HttpStatusCode.NotFound)
+			{
+				throw new PokemonNotFoundException(normalizedName);
+			}
 
-			species = await response.Content.ReadFromJsonAsync<PokemonSpeciesResponse>(JsonOptions, cancellationToken);
+			if (!response.IsSuccessStatusCode)
+			{
+				throw new PokeApiException($"PokeAPI returned {(int)response.StatusCode} ({response.ReasonPhrase}) for '{normalizedName}'.");
+			}
+
+			PokemonSpeciesResponse? species;
+			try
+			{
+				species = await response.Content.ReadFromJsonAsync<PokemonSpeciesResponse>(JsonOptions, cancellationToken);
+			}
+			catch (JsonException exception)
+			{
+				throw new PokeApiException($"PokeAPI returned malformed JSON for '{normalizedName}'.", exception);
+			}
+
+			if (species is null)
+			{
+				throw new PokeApiException($"PokeAPI returned an empty response for '{normalizedName}'.");
+			}
 
 			var description = species.FlavorTextEntries
 					.Where(entry => string.Equals(entry.Language?.Name, "en", StringComparison.OrdinalIgnoreCase))
 					.Select(entry => entry.FlavorText)
 					.FirstOrDefault(flavorText => !string.IsNullOrWhiteSpace(flavorText));
+
+			if (string.IsNullOrWhiteSpace(description))
+			{
+				throw new PokeApiException($"PokeAPI did not return an English description for '{normalizedName}'.");
+			}
 
 			return new PokemonInfo
 			(
