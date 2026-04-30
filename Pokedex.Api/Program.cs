@@ -38,6 +38,13 @@ builder.Services.AddHttpClient<IPokeApiClient, PokeApiClient>((serviceProvider, 
 	httpClient.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
 });
 
+builder.Services.AddHttpClient<IFunTranslationsClient, FunTranslationsClient>((serviceProvider, httpClient) =>
+{
+	var options = serviceProvider.GetRequiredService<IOptions<ExternalApiOptions>>().Value;
+	httpClient.BaseAddress = EnsureTrailingSlash(options.FunTranslationsBaseUrl);
+	httpClient.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

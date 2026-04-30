@@ -27,5 +27,16 @@ namespace Pokedex.Api.Controllers
 
 			return Ok(PokemonResponse.FromDomain(pokemonInfo));
 		}
+
+		[HttpGet("translated/{name}", Name = "GetTranslatedPokemon")]
+		[ProducesResponseType(typeof(PokemonResponse), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status502BadGateway)]
+		public async Task<IActionResult> GetTranslatedPokemonAsync(string name, CancellationToken cancellationToken)
+		{
+			var translatedPokemonInfo = await _pokemonService.GetTranslatedPokemonDescriptionAsync(name, cancellationToken);
+
+			return Ok(PokemonResponse.FromDomain(translatedPokemonInfo));
+		}
 	}
 }
